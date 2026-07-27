@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# IntelliJ
+.idea/
+*.iml
+
+# Java
+backend/target/
+*.class
+*.jar
+
+# Environment files
+.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Logs
+*.log
