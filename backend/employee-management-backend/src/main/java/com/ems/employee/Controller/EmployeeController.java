@@ -1,20 +1,13 @@
-package com.ems.employee.controller;
+package com.ems.employee.Controller;
 
-import com.ems.employee.entity.Employee;
+import com.ems.employee.dto.EmployeeRequestDto;
+import com.ems.employee.dto.EmployeeResponseDto;
+import com.ems.employee.dto.PageResponse;
 import com.ems.employee.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -22,32 +15,56 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    public EmployeeController(EmployeeService employeeService) {
+    public EmployeeController(
+            EmployeeService employeeService
+    ) {
         this.employeeService = employeeService;
     }
 
     @PostMapping
-    public ResponseEntity<Employee> createEmployee(
-            @Valid @RequestBody Employee employee
+    public ResponseEntity<EmployeeResponseDto>
+    createEmployee(
+            @Valid
+            @RequestBody
+            EmployeeRequestDto requestDto
     ) {
-        Employee savedEmployee =
-                employeeService.createEmployee(employee);
+        EmployeeResponseDto employee =
+                employeeService.createEmployee(requestDto);
 
-        return new ResponseEntity<>(
-                savedEmployee,
-                HttpStatus.CREATED
-        );
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(employee);
     }
 
     @GetMapping
-    public ResponseEntity<List<Employee>> getAllEmployees() {
+    public ResponseEntity<
+            PageResponse<EmployeeResponseDto>
+            > getEmployees(
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "5")
+            int size,
+
+            @RequestParam(defaultValue = "id")
+            String sortBy,
+
+            @RequestParam(defaultValue = "asc")
+            String direction
+    ) {
         return ResponseEntity.ok(
-                employeeService.getAllEmployees()
+                employeeService.getEmployees(
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                )
         );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Employee> getEmployeeById(
+    public ResponseEntity<EmployeeResponseDto>
+    getEmployeeById(
             @PathVariable Long id
     ) {
         return ResponseEntity.ok(
@@ -56,12 +73,19 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Employee> updateEmployee(
+    public ResponseEntity<EmployeeResponseDto>
+    updateEmployee(
             @PathVariable Long id,
-            @Valid @RequestBody Employee employee
+
+            @Valid
+            @RequestBody
+            EmployeeRequestDto requestDto
     ) {
         return ResponseEntity.ok(
-                employeeService.updateEmployee(id, employee)
+                employeeService.updateEmployee(
+                        id,
+                        requestDto
+                )
         );
     }
 
@@ -70,6 +94,82 @@ public class EmployeeController {
             @PathVariable Long id
     ) {
         employeeService.deleteEmployee(id);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .noContent()
+                .build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<
+            PageResponse<EmployeeResponseDto>
+            > searchEmployees(
+            @RequestParam String keyword,
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "5")
+            int size,
+
+            @RequestParam(defaultValue = "firstName")
+            String sortBy,
+
+            @RequestParam(defaultValue = "asc")
+            String direction
+    ) {
+        return ResponseEntity.ok(
+                employeeService.searchEmployees(
+                        keyword,
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                )
+        );
+    }
+
+    @GetMapping("/department")
+    public ResponseEntity<
+            PageResponse<EmployeeResponseDto>
+            > getEmployeesByDepartment(
+            @RequestParam String name,
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "5")
+            int size
+    ) {
+        return ResponseEntity.ok(
+                employeeService
+                        .getEmployeesByDepartment(
+                                name,
+                                page,
+                                size
+                        )
+        );
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<
+            PageResponse<EmployeeResponseDto>
+            > getEmployeesByStatus(
+            @RequestParam Boolean active,
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "5")
+            int size
+    ) {
+        return ResponseEntity.ok(
+                employeeService
+                        .getEmployeesByActiveStatus(
+                                active,
+                                page,
+                                size
+                        )
+        );
     }
 }

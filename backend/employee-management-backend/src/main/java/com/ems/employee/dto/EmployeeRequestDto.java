@@ -1,82 +1,61 @@
-package com.ems.employee.entity;
+package com.ems.employee.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "employees")
-public class Employee {
+public class EmployeeRequestDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(
-            name = "first_name",
-            nullable = false,
-            length = 50
+    @NotBlank(message = "First name is required")
+    @Size(
+            min = 2,
+            max = 50,
+            message = "First name must contain between 2 and 50 characters"
     )
     private String firstName;
 
-    @Column(
-            name = "last_name",
-            nullable = false,
-            length = 50
+    @NotBlank(message = "Last name is required")
+    @Size(
+            min = 2,
+            max = 50,
+            message = "Last name must contain between 2 and 50 characters"
     )
     private String lastName;
 
-    @Column(
-            nullable = false,
-            unique = true,
-            length = 150
-    )
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address")
     private String email;
 
-    @Column(
-            nullable = false,
-            length = 100
+    @NotBlank(message = "Department is required")
+    @Size(
+            max = 100,
+            message = "Department cannot exceed 100 characters"
     )
     private String department;
 
-    @Column(
-            name = "job_title",
-            nullable = false,
-            length = 100
+    @NotBlank(message = "Job title is required")
+    @Size(
+            max = 100,
+            message = "Job title cannot exceed 100 characters"
     )
     private String jobTitle;
 
-    @Column(
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
+    @NotNull(message = "Salary is required")
+    @PositiveOrZero(message = "Salary cannot be negative")
     private BigDecimal salary;
 
-    @Column(
-            name = "hire_date",
-            nullable = false
-    )
+    @NotNull(message = "Hire date is required")
     private LocalDate hireDate;
 
-    @Column(nullable = false)
+    @NotNull(message = "Active status is required")
     private Boolean active;
 
-    public Employee() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public EmployeeRequestDto() {
     }
 
     public String getFirstName() {

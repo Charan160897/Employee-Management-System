@@ -1,74 +1,22 @@
-package com.ems.employee.entity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+package com.ems.employee.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "employees")
-public class Employee {
+public class EmployeeResponseDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(
-            name = "first_name",
-            nullable = false,
-            length = 50
-    )
     private String firstName;
-
-    @Column(
-            name = "last_name",
-            nullable = false,
-            length = 50
-    )
     private String lastName;
-
-    @Column(
-            nullable = false,
-            unique = true,
-            length = 150
-    )
+    private String fullName;
     private String email;
-
-    @Column(
-            nullable = false,
-            length = 100
-    )
     private String department;
-
-    @Column(
-            name = "job_title",
-            nullable = false,
-            length = 100
-    )
     private String jobTitle;
-
-    @Column(
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
     private BigDecimal salary;
-
-    @Column(
-            name = "hire_date",
-            nullable = false
-    )
     private LocalDate hireDate;
-
-    @Column(nullable = false)
     private Boolean active;
 
-    public Employee() {
+    public EmployeeResponseDto() {
     }
 
     public Long getId() {
@@ -93,6 +41,14 @@ public class Employee {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getEmail() {

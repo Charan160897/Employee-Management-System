@@ -1,18 +1,50 @@
 package com.ems.employee.service;
 
-import com.ems.employee.entity.Employee;
-
-import java.util.List;
+import com.ems.employee.dto.EmployeeRequestDto;
+import com.ems.employee.dto.EmployeeResponseDto;
+import com.ems.employee.dto.PageResponse;
 
 public interface EmployeeService {
 
-    Employee createEmployee(Employee employee);
+    EmployeeResponseDto createEmployee(
+            EmployeeRequestDto requestDto
+    );
 
-    List<Employee> getAllEmployees();
+    PageResponse<EmployeeResponseDto> getEmployees(
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
 
-    Employee getEmployeeById(Long id);
+    EmployeeResponseDto getEmployeeById(Long id);
 
-    Employee updateEmployee(Long id, Employee employee);
+    EmployeeResponseDto updateEmployee(
+            Long id,
+            EmployeeRequestDto requestDto
+    );
 
     void deleteEmployee(Long id);
+
+    PageResponse<EmployeeResponseDto> searchEmployees(
+            String keyword,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
+
+    PageResponse<EmployeeResponseDto>
+    getEmployeesByDepartment(
+            String department,
+            int page,
+            int size
+    );
+
+    PageResponse<EmployeeResponseDto>
+    getEmployeesByActiveStatus(
+            Boolean active,
+            int page,
+            int size
+    );
 }
