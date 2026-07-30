@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import {
+  createEmployee,
   deleteEmployee,
   getEmployees,
 } from "./api/employeeService";
+import EmployeeForm from "./components/EmployeeForm";
 import EmployeeList from "./components/EmployeeList";
 import Header from "./components/Header";
 import Pagination from "./components/Pagination";
@@ -21,8 +23,14 @@ function App() {
   const [direction, setDirection] = useState("asc");
 
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [serverValidationErrors, setServerValidationErrors] =
+    useState({});
+
+  const [showCreateForm, setShowCreateForm] =
+    useState(false);
 
   const loadEmployees = useCallback(async () => {
     try {
@@ -67,6 +75,94 @@ function App() {
     loadEmployees();
   }, [loadEmployees]);
 
+  const handleOpenCreateForm = () => {
+    setError("");
+    setSuccessMessage("");
+    setServerValidationErrors({});
+    setShowCreateForm(true);
+  };
+
+  const handleCloseCreateForm = () => {
+    if (submitting) {
+      return;
+    }
+
+    setShowCreateForm(false);
+    setServerValidationErrors({});
+  };
+
+  const handleCreateEmployee = async (employeeData) => {
+    try {
+      setSubmitting(true);
+      setError("");
+      setSuccessMessage("");
+      setServerValidationErrors({});
+
+      const createdEmployee =
+        await createEmployee(employeeData);
+
+      setSuccessMessage(
+        `${createdEmployee.fullName} was created successfully.`
+      );
+
+      setShowCreateForm(false);
+
+      setSortBy("id");
+      setDirection("desc");
+
+      if (pageNumber !== 0) {
+        setPageNumber(0);
+      } else {
+        await loadEmployees();
+      }
+
+      return true;
+    } catch (requestError) {
+      console.error(
+        "Failed to create employee:",
+        requestError
+      );
+
+      const status = requestError.response?.status;
+      const responseData = requestError.response?.data;
+
+      if (!requestError.response) {
+        setError(
+          "Unable to connect to the backend. Make sure Spring Boot is running."
+        );
+      } else if (status === 400) {
+        setServerValidationErrors(
+          responseData?.validationErrors || {}
+        );
+
+        setError(
+          responseData?.message ||
+            "Please correct the highlighted fields."
+        );
+      } else if (status === 409) {
+        setError(
+          responseData?.message ||
+            "An employee with this email already exists."
+        );
+
+        setServerValidationErrors({
+          email:
+            responseData?.message ||
+            "This email is already registered.",
+        });
+      } else {
+        setError(
+          responseData?.message ||
+            "Unable to create the employee."
+        );
+      }
+
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) {
       setPageNumber(newPage);
@@ -89,8 +185,12 @@ function App() {
   };
 
   const handleDelete = async (employee) => {
+    const employeeName =
+      employee.fullName ||
+      `${employee.firstName} ${employee.lastName}`;
+
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${employee.fullName}?`
+      `Are you sure you want to delete ${employeeName}?`
     );
 
     if (!confirmed) {
@@ -104,7 +204,7 @@ function App() {
       await deleteEmployee(employee.id);
 
       setSuccessMessage(
-        `${employee.fullName} was deleted successfully.`
+        `${employeeName} was deleted successfully.`
       );
 
       if (employees.length === 1 && pageNumber > 0) {
@@ -113,7 +213,10 @@ function App() {
         await loadEmployees();
       }
     } catch (requestError) {
-      console.error("Failed to delete employee:", requestError);
+      console.error(
+        "Failed to delete employee:",
+        requestError
+      );
 
       setError(
         requestError.response?.data?.message ||
@@ -131,15 +234,47 @@ function App() {
           <div>
             <h2>Employees</h2>
             <p>
-              View and manage employees stored in your MySQL database.
+              View and manage employees stored in your MySQL
+              database.
             </p>
           </div>
 
-          <div className="employee-count">
-            <span>Total employees</span>
-            <strong>{totalElements}</strong>
+          <div className="summary-actions">
+            <div className="employee-count">
+              <span>Total employees</span>
+              <strong>{totalElements}</strong>
+            </div>
+
+            <button
+              type="button"
+              className="add-employee-button"
+              onClick={handleOpenCreateForm}
+            >
+              + Add Employee
+            </button>
           </div>
         </section>
+
+        {successMessage && (
+          <div className="alert alert-success">
+            {successMessage}
+          </div>
+        )}
+
+        {error && (
+          <div className="alert alert-error">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {showCreateForm && (
+          <EmployeeForm
+            onSubmit={handleCreateEmployee}
+            onCancel={handleCloseCreateForm}
+            submitting={submitting}
+            serverErrors={serverValidationErrors}
+          />
+        )}
 
         <section className="controls-section">
           <div className="control-group">
@@ -196,18 +331,6 @@ function App() {
             {loading ? "Loading..." : "Refresh"}
           </button>
         </section>
-
-        {successMessage && (
-          <div className="alert alert-success">
-            {successMessage}
-          </div>
-        )}
-
-        {error && (
-          <div className="alert alert-error">
-            <strong>Error:</strong> {error}
-          </div>
-        )}
 
         {loading ? (
           <div className="loading-state">

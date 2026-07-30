@@ -34,6 +34,11 @@ export const getEmployeeById = async (id) => {
   return response.data;
 };
 
+export const createEmployee = async (employeeData) => {
+  const response = await employeeApi.post("", employeeData);
+  return response.data;
+};
+
 export const deleteEmployee = async (id) => {
   await employeeApi.delete(`/${id}`);
 };
