@@ -1,0 +1,41 @@
+import axios from "axios";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+
+const employeeApi = axios.create({
+  baseURL: `${API_BASE_URL}/employees`,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  timeout: 10000,
+});
+
+export const getEmployees = async ({
+  page = 0,
+  size = 5,
+  sortBy = "id",
+  direction = "asc",
+} = {}) => {
+  const response = await employeeApi.get("", {
+    params: {
+      page,
+      size,
+      sortBy,
+      direction,
+    },
+  });
+
+  return response.data;
+};
+
+export const getEmployeeById = async (id) => {
+  const response = await employeeApi.get(`/${id}`);
+  return response.data;
+};
+
+export const deleteEmployee = async (id) => {
+  await employeeApi.delete(`/${id}`);
+};
+
+export default employeeApi;
