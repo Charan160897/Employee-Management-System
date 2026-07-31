@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://localhost:8080/api";
 
 const employeeApi = axios.create({
   baseURL: `${API_BASE_URL}/employees`,
@@ -35,7 +36,23 @@ export const getEmployeeById = async (id) => {
 };
 
 export const createEmployee = async (employeeData) => {
-  const response = await employeeApi.post("", employeeData);
+  const response = await employeeApi.post(
+    "",
+    employeeData
+  );
+
+  return response.data;
+};
+
+export const updateEmployee = async (
+  id,
+  employeeData
+) => {
+  const response = await employeeApi.put(
+    `/${id}`,
+    employeeData
+  );
+
   return response.data;
 };
 

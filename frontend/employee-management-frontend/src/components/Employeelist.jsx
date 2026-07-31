@@ -1,9 +1,15 @@
-function EmployeeList({ employees, onDelete }) {
+function EmployeeList({
+  employees,
+  onEdit,
+  onDelete,
+}) {
   if (!employees || employees.length === 0) {
     return (
       <div className="empty-state">
         <h2>No employees found</h2>
-        <p>Create employee records through Postman to see them here.</p>
+        <p>
+          Add an employee to see the record here.
+        </p>
       </div>
     );
   }
@@ -25,57 +31,80 @@ function EmployeeList({ employees, onDelete }) {
         </thead>
 
         <tbody>
-          {employees.map((employee) => (
-            <tr key={employee.id}>
-              <td>{employee.id}</td>
+          {employees.map((employee) => {
+            const employeeName =
+              employee.fullName ||
+              `${employee.firstName} ${employee.lastName}`;
 
-              <td>
-                <div className="employee-name">
-                  {employee.fullName ||
-                    `${employee.firstName} ${employee.lastName}`}
-                </div>
+            return (
+              <tr key={employee.id}>
+                <td>{employee.id}</td>
 
-                <div className="employee-email">
-                  {employee.email}
-                </div>
-              </td>
+                <td>
+                  <div className="employee-name">
+                    {employeeName}
+                  </div>
 
-              <td>{employee.department}</td>
+                  <div className="employee-email">
+                    {employee.email}
+                  </div>
+                </td>
 
-              <td>{employee.jobTitle}</td>
+                <td>{employee.department}</td>
 
-              <td>
-                {Number(employee.salary).toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                })}
-              </td>
+                <td>{employee.jobTitle}</td>
 
-              <td>{employee.hireDate}</td>
+                <td>
+                  {Number(
+                    employee.salary
+                  ).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  })}
+                </td>
 
-              <td>
-                <span
-                  className={
-                    employee.active
-                      ? "status status-active"
-                      : "status status-inactive"
-                  }
-                >
-                  {employee.active ? "Active" : "Inactive"}
-                </span>
-              </td>
+                <td>{employee.hireDate}</td>
 
-              <td>
-                <button
-                  type="button"
-                  className="delete-button"
-                  onClick={() => onDelete(employee)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
+                <td>
+                  <span
+                    className={
+                      employee.active
+                        ? "status status-active"
+                        : "status status-inactive"
+                    }
+                  >
+                    {employee.active
+                      ? "Active"
+                      : "Inactive"}
+                  </span>
+                </td>
+
+                <td>
+                  <div className="action-buttons">
+                    <button
+                      type="button"
+                      className="edit-button"
+                      onClick={() =>
+                        onEdit(employee)
+                      }
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      className="delete-button"
+                      onClick={() =>
+                        onDelete(employee)
+                      }
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

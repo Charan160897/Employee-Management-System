@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const initialFormData = {
+const emptyFormData = {
   firstName: "",
   lastName: "",
   email: "",
@@ -11,14 +11,47 @@ const initialFormData = {
   active: true,
 };
 
+const getEmployeeFormData = (employee) => {
+  if (!employee) {
+    return emptyFormData;
+  }
+
+  return {
+    firstName: employee.firstName || "",
+    lastName: employee.lastName || "",
+    email: employee.email || "",
+    department: employee.department || "",
+    jobTitle: employee.jobTitle || "",
+    salary:
+      employee.salary === null ||
+      employee.salary === undefined
+        ? ""
+        : String(employee.salary),
+    hireDate: employee.hireDate || "",
+    active: employee.active ?? true,
+  };
+};
+
 function EmployeeForm({
+  employee,
   onSubmit,
   onCancel,
   submitting,
   serverErrors,
 }) {
-  const [formData, setFormData] = useState(initialFormData);
-  const [clientErrors, setClientErrors] = useState({});
+  const isEditMode = Boolean(employee?.id);
+
+  const [formData, setFormData] = useState(
+    getEmployeeFormData(employee)
+  );
+
+  const [clientErrors, setClientErrors] =
+    useState({});
+
+  useEffect(() => {
+    setFormData(getEmployeeFormData(employee));
+    setClientErrors({});
+  }, [employee]);
 
   const validateForm = () => {
     const errors = {};
@@ -31,23 +64,25 @@ function EmployeeForm({
     const salaryNumber = Number(formData.salary);
 
     if (!firstName) {
-      errors.firstName = "First name is required.";
+      errors.firstName =
+        "First name is required.";
     } else if (firstName.length < 2) {
       errors.firstName =
         "First name must contain at least 2 characters.";
     } else if (firstName.length > 50) {
       errors.firstName =
-        "First name cannot contain more than 50 characters.";
+        "First name cannot exceed 50 characters.";
     }
 
     if (!lastName) {
-      errors.lastName = "Last name is required.";
+      errors.lastName =
+        "Last name is required.";
     } else if (lastName.length < 2) {
       errors.lastName =
         "Last name must contain at least 2 characters.";
     } else if (lastName.length > 50) {
       errors.lastName =
-        "Last name cannot contain more than 50 characters.";
+        "Last name cannot exceed 50 characters.";
     }
 
     if (!email) {
@@ -57,39 +92,54 @@ function EmployeeForm({
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!emailPattern.test(email)) {
-        errors.email = "Enter a valid email address.";
+        errors.email =
+          "Enter a valid email address.";
       }
     }
 
     if (!department) {
-      errors.department = "Department is required.";
+      errors.department =
+        "Department is required.";
     }
 
     if (!jobTitle) {
-      errors.jobTitle = "Job title is required.";
+      errors.jobTitle =
+        "Job title is required.";
     }
 
     if (formData.salary === "") {
-      errors.salary = "Salary is required.";
+      errors.salary =
+        "Salary is required.";
     } else if (Number.isNaN(salaryNumber)) {
-      errors.salary = "Salary must be a valid number.";
+      errors.salary =
+        "Salary must be a valid number.";
     } else if (salaryNumber < 0) {
-      errors.salary = "Salary cannot be negative.";
+      errors.salary =
+        "Salary cannot be negative.";
     }
 
     if (!formData.hireDate) {
-      errors.hireDate = "Hire date is required.";
+      errors.hireDate =
+        "Hire date is required.";
     }
 
     return errors;
   };
 
   const handleChange = (event) => {
-    const { name, value, type, checked } = event.target;
+    const {
+      name,
+      value,
+      type,
+      checked,
+    } = event.target;
 
     setFormData((currentFormData) => ({
       ...currentFormData,
-      [name]: type === "checkbox" ? checked : value,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : value,
     }));
 
     setClientErrors((currentErrors) => ({
@@ -103,32 +153,43 @@ function EmployeeForm({
 
     const validationErrors = validateForm();
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (
+      Object.keys(validationErrors).length > 0
+    ) {
       setClientErrors(validationErrors);
       return;
     }
 
     const employeeData = {
-      firstName: formData.firstName.trim(),
-      lastName: formData.lastName.trim(),
-      email: formData.email.trim().toLowerCase(),
-      department: formData.department.trim(),
-      jobTitle: formData.jobTitle.trim(),
+      firstName:
+        formData.firstName.trim(),
+      lastName:
+        formData.lastName.trim(),
+      email:
+        formData.email.trim().toLowerCase(),
+      department:
+        formData.department.trim(),
+      jobTitle:
+        formData.jobTitle.trim(),
       salary: Number(formData.salary),
       hireDate: formData.hireDate,
       active: formData.active,
     };
 
-    const createdSuccessfully = await onSubmit(employeeData);
+    const successful =
+      await onSubmit(employeeData);
 
-    if (createdSuccessfully) {
-      setFormData(initialFormData);
+    if (successful && !isEditMode) {
+      setFormData(emptyFormData);
       setClientErrors({});
     }
   };
 
   const handleReset = () => {
-    setFormData(initialFormData);
+    setFormData(
+      getEmployeeFormData(employee)
+    );
+
     setClientErrors({});
   };
 
@@ -144,10 +205,16 @@ function EmployeeForm({
     <section className="employee-form-card">
       <div className="form-header">
         <div>
-          <h2>Add Employee</h2>
+          <h2>
+            {isEditMode
+              ? "Edit Employee"
+              : "Add Employee"}
+          </h2>
+
           <p>
-            Enter the employee information and save it to the
-            database.
+            {isEditMode
+              ? `Update employee ID ${employee.id}.`
+              : "Enter the employee information and save it to the database."}
           </p>
         </div>
 
@@ -266,17 +333,34 @@ function EmployeeForm({
               }
               disabled={submitting}
             >
-              <option value="">Select department</option>
+              <option value="">
+                Select department
+              </option>
+
               <option value="Engineering">
                 Engineering
               </option>
+
               <option value="Human Resources">
                 Human Resources
               </option>
-              <option value="Finance">Finance</option>
-              <option value="Sales">Sales</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Operations">Operations</option>
+
+              <option value="Finance">
+                Finance
+              </option>
+
+              <option value="Sales">
+                Sales
+              </option>
+
+              <option value="Marketing">
+                Marketing
+              </option>
+
+              <option value="Operations">
+                Operations
+              </option>
+
               <option value="Information Technology">
                 Information Technology
               </option>
@@ -300,7 +384,7 @@ function EmployeeForm({
               type="text"
               value={formData.jobTitle}
               onChange={handleChange}
-              placeholder="Example: Software Developer"
+              placeholder="Software Developer"
               className={
                 getFieldError("jobTitle")
                   ? "input-error"
@@ -393,7 +477,9 @@ function EmployeeForm({
             onClick={handleReset}
             disabled={submitting}
           >
-            Reset
+            {isEditMode
+              ? "Restore Original Values"
+              : "Reset"}
           </button>
 
           <button
@@ -410,7 +496,13 @@ function EmployeeForm({
             className="save-button"
             disabled={submitting}
           >
-            {submitting ? "Saving..." : "Save Employee"}
+            {submitting
+              ? isEditMode
+                ? "Updating..."
+                : "Saving..."
+              : isEditMode
+                ? "Update Employee"
+                : "Save Employee"}
           </button>
         </div>
       </form>
