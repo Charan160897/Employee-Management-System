@@ -10,9 +10,13 @@ import {
   createEmployee,
   deleteEmployee,
   getEmployees,
+  getEmployeesByDepartment,
+  getEmployeesByStatus,
+  searchEmployees,
   updateEmployee,
 } from "./api/employeeService";
 
+import EmployeeFilters from "./components/EmployeeFilters";
 import EmployeeForm from "./components/EmployeeForm";
 import EmployeeList from "./components/EmployeeList";
 import Header from "./components/Header";
@@ -33,6 +37,15 @@ function App() {
 
   const [totalPages, setTotalPages] =
     useState(0);
+  
+  const [searchKeyword, setsearchKeyword] =
+    useState("");
+
+  const [departmentFilter, setDepartmentFilter] =
+    useState("");
+
+  const [statusFilter, setStatusFilter] =
+    useState("all");
 
   const [firstPage, setFirstPage] =
     useState(true);
@@ -72,65 +85,87 @@ function App() {
     useState(null);
 
   const loadEmployees = useCallback(
-    async () => {
-      try {
-        setLoading(true);
-        setError("");
+  async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        const data = await getEmployees({
+      let data;
+
+      if (searchKeyword) {
+        data = await searchEmployees({
+          keyword: searchKeyword,
           page: pageNumber,
           size: pageSize,
           sortBy,
           direction,
         });
-
-        setEmployees(data.content || []);
-        setPageNumber(data.pageNumber ?? 0);
-        setPageSize(
-          data.pageSize ?? pageSize
-        );
-        setTotalElements(
-          data.totalElements ?? 0
-        );
-        setTotalPages(
-          data.totalPages ?? 0
-        );
-        setFirstPage(data.first ?? true);
-        setLastPage(data.last ?? true);
-      } catch (requestError) {
-        console.error(
-          "Failed to load employees:",
-          requestError
-        );
-
-        if (
-          requestError.code === "ECONNABORTED"
-        ) {
-          setError(
-            "The request timed out. Please try again."
-          );
-        } else if (!requestError.response) {
-          setError(
-            "Unable to connect to the backend. Make sure Spring Boot is running on port 8080."
-          );
-        } else {
-          setError(
-            requestError.response.data
-              ?.message ||
-              "Unable to load employees."
-          );
-        }
-      } finally {
-        setLoading(false);
+      } else if (departmentFilter) {
+        data = await getEmployeesByDepartment({
+          department: departmentFilter,
+          page: pageNumber,
+          size: pageSize,
+        });
+      } else if (statusFilter !== "all") {
+        data = await getEmployeesByStatus({
+          active: statusFilter === "active",
+          page: pageNumber,
+          size: pageSize,
+        });
+      } else {
+        data = await getEmployees({
+          page: pageNumber,
+          size: pageSize,
+          sortBy,
+          direction,
+        });
       }
-    },
-    [
-      pageNumber,
-      pageSize,
-      sortBy,
-      direction,
-    ]
-  );
+
+      setEmployees(data.content || []);
+      setPageNumber(data.pageNumber ?? 0);
+      setPageSize(data.pageSize ?? pageSize);
+      setTotalElements(
+        data.totalElements ?? 0
+      );
+      setTotalPages(data.totalPages ?? 0);
+      setFirstPage(data.first ?? true);
+      setLastPage(data.last ?? true);
+    } catch (requestError) {
+      console.error(
+        "Failed to load employees:",
+        requestError
+      );
+
+      if (
+        requestError.code === "ECONNABORTED"
+      ) {
+        setError(
+          "The request timed out. Please try again."
+        );
+      } else if (!requestError.response) {
+        setError(
+          "Unable to connect to the backend. Make sure Spring Boot is running on port 8080."
+        );
+      } else {
+        setError(
+          requestError.response.data?.message ||
+            "Unable to load employees."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  },
+  [
+    pageNumber,
+    pageSize,
+    sortBy,
+    direction,
+    searchKeyword,
+    departmentFilter,
+    statusFilter,
+  ]
+);
 
   useEffect(() => {
     loadEmployees();
@@ -157,6 +192,45 @@ function App() {
       top: 0,
       behavior: "smooth",
     });
+  };
+
+  const handleApplyFilters = ({
+    keyword,
+    department,
+    status,
+  }) => {
+    clearMessages();
+    setsearchKeyword(keyword);
+    setDepartmentFilter(department);
+    setStatusFilter(status);
+    setPageNumber(0);
+  };
+
+  const handleClearFilters = () => {
+    clearMessages();
+    setsearchKeyword("");
+    setDepartmentFilter("");
+    setStatusFilter("all");
+    setPageNumber(0);
+  };
+  const getActiveFilterDescription = () => {
+  if (searchKeyword) {
+    return `Search results for "${searchKeyword}"`;
+  }
+
+  if (departmentFilter) {
+    return `Department: ${departmentFilter}`;
+  }
+
+  if (statusFilter === "active") {
+    return "Active employees";
+  }
+
+  if (statusFilter === "inactive") {
+    return "Inactive employees";
+  }
+
+  return "All employees";
   };
 
   const handleCloseEmployeeForm = () => {
@@ -456,6 +530,15 @@ function App() {
           </div>
         )}
 
+        <EmployeeFilters
+          initialKeyword={searchKeyword}
+          initialDepartment={departmentFilter}
+          initialStatus={statusFilter}
+          onApplyFilters={handleApplyFilters}
+          onClearFilters={handleClearFilters}
+         disabled={loading || submitting}
+        />
+
         {showEmployeeForm && (
           <EmployeeForm
             employee={editingEmployee}
@@ -471,6 +554,12 @@ function App() {
             }
           />
         )}
+        <div className="active-filter-summary">
+          <span>Current view:</span>
+          <strong>
+            {getActiveFilterDescription()}
+           </strong>
+        </div>
 
         <section className="controls-section">
           <div className="control-group">

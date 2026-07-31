@@ -30,6 +30,58 @@ export const getEmployees = async ({
   return response.data;
 };
 
+export const searchEmployees = async ({
+  keyword,
+  page = 0,
+  size = 5,
+  sortBy = "firstName",
+  direction = "asc",
+}) => {
+  const response = await employeeApi.get("/search", {
+    params: {
+      keyword,
+      page,
+      size,
+      sortBy,
+      direction,
+    },
+  });
+
+  return response.data;
+};
+
+export const getEmployeesByDepartment = async ({
+  department,
+  page = 0,
+  size = 5,
+}) => {
+  const response = await employeeApi.get("/department", {
+    params: {
+      name: department,
+      page,
+      size,
+    },
+  });
+
+  return response.data;
+};
+
+export const getEmployeesByStatus = async ({
+  active,
+  page = 0,
+  size = 5,
+}) => {
+  const response = await employeeApi.get("/status", {
+    params: {
+      active,
+      page,
+      size,
+    },
+  });
+
+  return response.data;
+};
+
 export const getEmployeeById = async (id) => {
   const response = await employeeApi.get(`/${id}`);
   return response.data;
