@@ -9,10 +9,7 @@ import "./App.css";
 import {
   createEmployee,
   deleteEmployee,
-  getEmployees,
-  getEmployeesByDepartment,
-  getEmployeesByStatus,
-  searchEmployees,
+  filterEmployees,
   updateEmployee,
 } from "./api/employeeService";
 
@@ -84,52 +81,57 @@ function App() {
   const [editingEmployee, setEditingEmployee] =
     useState(null);
 
-  const loadEmployees = useCallback(
+ const loadEmployees = useCallback(
   async () => {
     try {
       setLoading(true);
       setError("");
 
-      let data;
+      let activeValue = null;
 
-      if (searchKeyword) {
-        data = await searchEmployees({
-          keyword: searchKeyword,
-          page: pageNumber,
-          size: pageSize,
-          sortBy,
-          direction,
-        });
-      } else if (departmentFilter) {
-        data = await getEmployeesByDepartment({
-          department: departmentFilter,
-          page: pageNumber,
-          size: pageSize,
-        });
-      } else if (statusFilter !== "all") {
-        data = await getEmployeesByStatus({
-          active: statusFilter === "active",
-          page: pageNumber,
-          size: pageSize,
-        });
-      } else {
-        data = await getEmployees({
-          page: pageNumber,
-          size: pageSize,
-          sortBy,
-          direction,
-        });
+      if (statusFilter === "active") {
+        activeValue = true;
+      } else if (
+        statusFilter === "inactive"
+      ) {
+        activeValue = false;
       }
 
+      const data = await filterEmployees({
+        keyword: searchKeyword,
+        department: departmentFilter,
+        active: activeValue,
+        page: pageNumber,
+        size: pageSize,
+        sortBy,
+        direction,
+      });
+
       setEmployees(data.content || []);
-      setPageNumber(data.pageNumber ?? 0);
-      setPageSize(data.pageSize ?? pageSize);
+
+      setPageNumber(
+        data.pageNumber ?? 0
+      );
+
+      setPageSize(
+        data.pageSize ?? pageSize
+      );
+
       setTotalElements(
         data.totalElements ?? 0
       );
-      setTotalPages(data.totalPages ?? 0);
-      setFirstPage(data.first ?? true);
-      setLastPage(data.last ?? true);
+
+      setTotalPages(
+        data.totalPages ?? 0
+      );
+
+      setFirstPage(
+        data.first ?? true
+      );
+
+      setLastPage(
+        data.last ?? true
+      );
     } catch (requestError) {
       console.error(
         "Failed to load employees:",
@@ -137,18 +139,22 @@ function App() {
       );
 
       if (
-        requestError.code === "ECONNABORTED"
+        requestError.code ===
+        "ECONNABORTED"
       ) {
         setError(
           "The request timed out. Please try again."
         );
-      } else if (!requestError.response) {
+      } else if (
+        !requestError.response
+      ) {
         setError(
           "Unable to connect to the backend. Make sure Spring Boot is running on port 8080."
         );
       } else {
         setError(
-          requestError.response.data?.message ||
+          requestError.response.data
+            ?.message ||
             "Unable to load employees."
         );
       }
@@ -214,24 +220,40 @@ function App() {
     setPageNumber(0);
   };
   const getActiveFilterDescription = () => {
+  const activeFilters = [];
+
   if (searchKeyword) {
-    return `Search results for "${searchKeyword}"`;
+    activeFilters.push(
+      `Search: "${searchKeyword}"`
+    );
   }
 
   if (departmentFilter) {
-    return `Department: ${departmentFilter}`;
+    activeFilters.push(
+      `Department: ${departmentFilter}`
+    );
   }
 
   if (statusFilter === "active") {
-    return "Active employees";
+    activeFilters.push(
+      "Status: Active"
+    );
   }
 
-  if (statusFilter === "inactive") {
-    return "Inactive employees";
+  if (
+    statusFilter === "inactive"
+  ) {
+    activeFilters.push(
+      "Status: Inactive"
+    );
   }
 
-  return "All employees";
-  };
+  if (activeFilters.length === 0) {
+    return "All employees";
+  }
+
+  return activeFilters.join(" • ");
+};
 
   const handleCloseEmployeeForm = () => {
     if (submitting) {

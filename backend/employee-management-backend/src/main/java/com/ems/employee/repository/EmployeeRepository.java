@@ -4,11 +4,15 @@ import com.ems.employee.entity.Employee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface EmployeeRepository
-        extends JpaRepository<Employee, Long> {
+        extends JpaRepository<Employee, Long>,
+        JpaSpecificationExecutor<Employee> {
 
-    boolean existsByEmailIgnoreCase(String email);
+    boolean existsByEmailIgnoreCase(
+            String email
+    );
 
     boolean existsByEmailIgnoreCaseAndIdNot(
             String email,
@@ -23,7 +27,8 @@ public interface EmployeeRepository
             Pageable pageable
     );
 
-    Page<Employee> findByDepartmentContainingIgnoreCase(
+    Page<Employee>
+    findByDepartmentContainingIgnoreCase(
             String department,
             Pageable pageable
     );

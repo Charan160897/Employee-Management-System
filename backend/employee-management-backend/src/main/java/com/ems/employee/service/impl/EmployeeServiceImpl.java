@@ -9,18 +9,20 @@ import com.ems.employee.exception.EmployeeNotFoundException;
 import com.ems.employee.mapper.EmployeeMapper;
 import com.ems.employee.repository.EmployeeRepository;
 import com.ems.employee.service.EmployeeService;
+import com.ems.employee.specification.EmployeeSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class EmployeeServiceImpl
-        implements EmployeeService {
+public class EmployeeServiceImpl implements EmployeeService {
 
+    private static final int DEFAULT_PAGE_SIZE = 5;
     private static final int MAX_PAGE_SIZE = 100;
 
     private final EmployeeRepository employeeRepository;
@@ -34,6 +36,9 @@ public class EmployeeServiceImpl
         this.employeeMapper = employeeMapper;
     }
 
+    /*
+     * Create a new employee.
+     */
     @Override
     public EmployeeResponseDto createEmployee(
             EmployeeRequestDto requestDto
@@ -43,6 +48,7 @@ public class EmployeeServiceImpl
 
         if (employeeRepository
                 .existsByEmailIgnoreCase(normalizedEmail)) {
+
             throw new DuplicateEmailException(
                     normalizedEmail
             );
@@ -56,12 +62,16 @@ public class EmployeeServiceImpl
         Employee savedEmployee =
                 employeeRepository.save(employee);
 
-        return employeeMapper.toResponseDto(savedEmployee);
+        return employeeMapper.toResponseDto(
+                savedEmployee
+        );
     }
 
+    /*
+     * Return all employees with pagination and sorting.
+     */
     @Override
-    public PageResponse<EmployeeResponseDto>
-    getEmployees(
+    public PageResponse<EmployeeResponseDto> getEmployees(
             int page,
             int size,
             String sortBy,
@@ -81,13 +91,21 @@ public class EmployeeServiceImpl
         return createPageResponse(employeePage);
     }
 
+    /*
+     * Return one employee using the employee ID.
+     */
     @Override
-    public EmployeeResponseDto getEmployeeById(Long id) {
+    public EmployeeResponseDto getEmployeeById(
+            Long id
+    ) {
         Employee employee = findEmployee(id);
 
         return employeeMapper.toResponseDto(employee);
     }
 
+    /*
+     * Update an existing employee.
+     */
     @Override
     public EmployeeResponseDto updateEmployee(
             Long id,
@@ -120,22 +138,30 @@ public class EmployeeServiceImpl
         );
 
         Employee updatedEmployee =
-                employeeRepository.save(existingEmployee);
+                employeeRepository.save(
+                        existingEmployee
+                );
 
         return employeeMapper.toResponseDto(
                 updatedEmployee
         );
     }
 
+    /*
+     * Delete an employee.
+     */
     @Override
     public void deleteEmployee(Long id) {
         Employee employee = findEmployee(id);
+
         employeeRepository.delete(employee);
     }
 
+    /*
+     * Search employees using first name, last name or email.
+     */
     @Override
-    public PageResponse<EmployeeResponseDto>
-    searchEmployees(
+    public PageResponse<EmployeeResponseDto> searchEmployees(
             String keyword,
             int page,
             int size,
@@ -151,7 +177,9 @@ public class EmployeeServiceImpl
                 );
 
         String cleanedKeyword =
-                keyword == null ? "" : keyword.trim();
+                keyword == null
+                        ? ""
+                        : keyword.trim();
 
         Page<Employee> employeePage =
                 employeeRepository
@@ -165,6 +193,9 @@ public class EmployeeServiceImpl
         return createPageResponse(employeePage);
     }
 
+    /*
+     * Return employees belonging to a department.
+     */
     @Override
     public PageResponse<EmployeeResponseDto>
     getEmployeesByDepartment(
@@ -176,19 +207,28 @@ public class EmployeeServiceImpl
                 PageRequest.of(
                         validatePage(page),
                         validateSize(size),
-                        Sort.by("firstName").ascending()
+                        Sort.by("firstName")
+                                .ascending()
                 );
+
+        String cleanedDepartment =
+                department == null
+                        ? ""
+                        : department.trim();
 
         Page<Employee> employeePage =
                 employeeRepository
                         .findByDepartmentContainingIgnoreCase(
-                                department.trim(),
+                                cleanedDepartment,
                                 pageable
                         );
 
         return createPageResponse(employeePage);
     }
 
+    /*
+     * Return active or inactive employees.
+     */
     @Override
     public PageResponse<EmployeeResponseDto>
     getEmployeesByActiveStatus(
@@ -200,7 +240,8 @@ public class EmployeeServiceImpl
                 PageRequest.of(
                         validatePage(page),
                         validateSize(size),
-                        Sort.by("firstName").ascending()
+                        Sort.by("firstName")
+                                .ascending()
                 );
 
         Page<Employee> employeePage =
@@ -212,51 +253,136 @@ public class EmployeeServiceImpl
         return createPageResponse(employeePage);
     }
 
+    /*
+     * Day 8 combined filtering.
+     *
+     * This method can combine:
+     * - keyword
+     * - department
+     * - active status
+     * - pagination
+     * - sorting
+     */
+    @Override
+    public PageResponse<EmployeeResponseDto> filterEmployees(
+            String keyword,
+            String department,
+            Boolean active,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    ) {
+        Pageable pageable =
+                createPageable(
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                );
+
+        Specification<Employee> specification =
+                Specification
+                        .where(
+                                EmployeeSpecification
+                                        .hasKeyword(keyword)
+                        )
+                        .and(
+                                EmployeeSpecification
+                                        .hasDepartment(
+                                                department
+                                        )
+                        )
+                        .and(
+                                EmployeeSpecification
+                                        .hasActiveStatus(
+                                                active
+                                        )
+                        );
+
+        Page<Employee> employeePage =
+                employeeRepository.findAll(
+                        specification,
+                        pageable
+                );
+
+        return createPageResponse(employeePage);
+    }
+
+    /*
+     * Find an employee or throw a 404 exception.
+     */
     private Employee findEmployee(Long id) {
-        return employeeRepository.findById(id)
+        return employeeRepository
+                .findById(id)
                 .orElseThrow(
-                        () -> new EmployeeNotFoundException(id)
+                        () ->
+                                new EmployeeNotFoundException(
+                                        id
+                                )
                 );
     }
 
+    /*
+     * Create pagination and sorting configuration.
+     */
     private Pageable createPageable(
             int page,
             int size,
             String sortBy,
             String direction
     ) {
+        int safePage = validatePage(page);
+        int safeSize = validateSize(size);
+
+        String safeSortField =
+                validateSortField(sortBy);
+
         Sort.Direction sortDirection =
                 "desc".equalsIgnoreCase(direction)
                         ? Sort.Direction.DESC
                         : Sort.Direction.ASC;
 
-        String safeSortField =
-                validateSortField(sortBy);
+        Sort sort = Sort.by(
+                sortDirection,
+                safeSortField
+        );
 
         return PageRequest.of(
-                validatePage(page),
-                validateSize(size),
-                Sort.by(
-                        sortDirection,
-                        safeSortField
-                )
+                safePage,
+                safeSize,
+                sort
         );
     }
 
+    /*
+     * Page numbers cannot be negative.
+     */
     private int validatePage(int page) {
         return Math.max(page, 0);
     }
 
+    /*
+     * Page size must be between 1 and 100.
+     */
     private int validateSize(int size) {
         if (size < 1) {
-            return 5;
+            return DEFAULT_PAGE_SIZE;
         }
 
-        return Math.min(size, MAX_PAGE_SIZE);
+        return Math.min(
+                size,
+                MAX_PAGE_SIZE
+        );
     }
 
-    private String validateSortField(String sortBy) {
-        if (sortBy == null) {
+    /*
+     * Only valid Employee entity fields may be used for sorting.
+     */
+    private String validateSortField(
+            String sortBy
+    ) {
+        if (sortBy == null || sortBy.isBlank()) {
             return "id";
         }
 
@@ -270,17 +396,26 @@ public class EmployeeServiceImpl
                  "salary",
                  "hireDate",
                  "active" -> sortBy;
+
             default -> "id";
         };
     }
 
+    /*
+     * Convert Page<Employee> to PageResponse<EmployeeResponseDto>.
+     */
     private PageResponse<EmployeeResponseDto>
-    createPageResponse(Page<Employee> employeePage) {
-
+    createPageResponse(
+            Page<Employee> employeePage
+    ) {
         List<EmployeeResponseDto> employeeDtos =
-                employeePage.getContent()
+                employeePage
+                        .getContent()
                         .stream()
-                        .map(employeeMapper::toResponseDto)
+                        .map(
+                                employeeMapper
+                                        ::toResponseDto
+                        )
                         .toList();
 
         return new PageResponse<>(
@@ -294,9 +429,13 @@ public class EmployeeServiceImpl
         );
     }
 
+    /*
+     * Store email addresses consistently.
+     */
     private String normalizeEmail(String email) {
         return email == null
                 ? null
-                : email.trim().toLowerCase();
+                : email.trim()
+                .toLowerCase();
     }
 }

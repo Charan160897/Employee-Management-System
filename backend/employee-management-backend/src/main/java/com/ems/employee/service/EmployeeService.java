@@ -17,7 +17,9 @@ public interface EmployeeService {
             String direction
     );
 
-    EmployeeResponseDto getEmployeeById(Long id);
+    EmployeeResponseDto getEmployeeById(
+            Long id
+    );
 
     EmployeeResponseDto updateEmployee(
             Long id,
@@ -46,5 +48,15 @@ public interface EmployeeService {
             Boolean active,
             int page,
             int size
+    );
+
+    PageResponse<EmployeeResponseDto> filterEmployees(
+            String keyword,
+            String department,
+            Boolean active,
+            int page,
+            int size,
+            String sortBy,
+            String direction
     );
 }
