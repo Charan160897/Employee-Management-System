@@ -4,6 +4,7 @@ import com.ems.employee.dto.EmployeeRequestDto;
 import com.ems.employee.dto.EmployeeResponseDto;
 import com.ems.employee.dto.PageResponse;
 import com.ems.employee.service.EmployeeService;
+import com.ems.employee.dto.EmployeeStatisticsDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -228,6 +229,18 @@ public class EmployeeController {
      *
      * GET /api/employees/{id}
      */
+
+    @GetMapping("/statistics")
+    public ResponseEntity<EmployeeStatisticsDto>
+    getEmployeeStatistics() {
+
+        EmployeeStatisticsDto statistics =
+                employeeService
+                        .getEmployeeStatistics();
+
+        return ResponseEntity.ok(statistics);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeResponseDto>
     getEmployeeById(

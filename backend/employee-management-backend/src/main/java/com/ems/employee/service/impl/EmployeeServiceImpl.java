@@ -15,8 +15,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import com.ems.employee.dto.DepartmentCountDto;
+import com.ems.employee.dto.EmployeeStatisticsDto;
 import org.springframework.stereotype.Service;
 
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -307,6 +313,67 @@ public class EmployeeServiceImpl implements EmployeeService {
                 );
 
         return createPageResponse(employeePage);
+    }
+
+    @Override
+    public EmployeeStatisticsDto getEmployeeStatistics() {
+
+        long totalEmployees =
+                employeeRepository.count();
+
+        long activeEmployees =
+                employeeRepository.countByActive(true);
+
+        long inactiveEmployees =
+                employeeRepository.countByActive(false);
+
+        BigDecimal averageSalary =
+                employeeRepository.findAverageSalary();
+
+        if (averageSalary == null) {
+            averageSalary = BigDecimal.ZERO;
+        }
+
+        averageSalary = averageSalary.setScale(
+                2,
+                RoundingMode.HALF_UP
+        );
+
+        long totalDepartments =
+                employeeRepository.countDistinctDepartments();
+
+        List<Object[]> departmentRows =
+                employeeRepository.countEmployeesByDepartment();
+
+        List<DepartmentCountDto> departmentCounts =
+                new ArrayList<>();
+
+        for (Object[] row : departmentRows) {
+
+            String department =
+                    row[0] == null
+                            ? "Unassigned"
+                            : row[0].toString();
+
+            long employeeCount =
+                    ((Number) row[1]).longValue();
+
+            departmentCounts.add(
+                    new DepartmentCountDto(
+                            department,
+                            employeeCount
+                    )
+            );
+        }
+
+        return new EmployeeStatisticsDto(
+                totalEmployees,
+                activeEmployees,
+                inactiveEmployees,
+                averageSalary,
+                totalDepartments,
+                departmentCounts
+        );
     }
 
     /*

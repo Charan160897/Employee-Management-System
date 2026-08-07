@@ -65,6 +65,14 @@ export const filterEmployees = async ({
   return response.data;
 };
 
+export const getEmployeeStatistics = async () => {
+  const response = await employeeApi.get(
+    "/statistics"
+  );
+
+  return response.data;
+};
+
 export const getEmployeeById = async (id) => {
   const response = await employeeApi.get(`/${id}`);
   return response.data;

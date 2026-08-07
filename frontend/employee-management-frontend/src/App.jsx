@@ -10,9 +10,11 @@ import {
   createEmployee,
   deleteEmployee,
   filterEmployees,
+  getEmployeeStatistics,
   updateEmployee,
 } from "./api/employeeService";
 
+import EmployeeDashboard from "./components/EmployeeDashboard";
 import EmployeeFilters from "./components/EmployeeFilters";
 import EmployeeForm from "./components/EmployeeForm";
 import EmployeeList from "./components/EmployeeList";
@@ -20,6 +22,21 @@ import Header from "./components/Header";
 import Pagination from "./components/Pagination";
 
 function App() {
+
+const [
+  employeeStatistics,
+  setEmployeeStatistics,
+] = useState(null);
+
+const [
+  statisticsLoading,
+  setStatisticsLoading,
+] = useState(true);
+
+const [
+  statisticsError,
+  setStatisticsError,
+] = useState("");
   const [employees, setEmployees] =
     useState([]);
 
@@ -173,9 +190,44 @@ function App() {
   ]
 );
 
+const loadEmployeeStatistics =
+  useCallback(async () => {
+    try {
+      setStatisticsLoading(true);
+      setStatisticsError("");
+
+      const data =
+        await getEmployeeStatistics();
+
+      setEmployeeStatistics(data);
+    } catch (requestError) {
+      console.error(
+        "Failed to load employee statistics:",
+        requestError
+      );
+
+      if (!requestError.response) {
+        setStatisticsError(
+          "Unable to connect to the statistics API."
+        );
+      } else {
+        setStatisticsError(
+          requestError.response.data?.message ||
+            "Unable to load employee statistics."
+        );
+      }
+    } finally {
+      setStatisticsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadEmployees();
   }, [loadEmployees]);
+
+  useEffect(() => {
+  loadEmployeeStatistics();
+}, [loadEmployeeStatistics]);
 
   const clearMessages = () => {
     setError("");
@@ -278,7 +330,7 @@ function App() {
       setSuccessMessage(
         `${createdEmployee.fullName} was created successfully.`
       );
-
+      await loadEmployeeStatistics();
       setShowEmployeeForm(false);
       setEditingEmployee(null);
 
@@ -328,6 +380,7 @@ function App() {
       setSuccessMessage(
         `${updatedEmployee.fullName} was updated successfully.`
       );
+      await loadEmployeeStatistics();
 
       setShowEmployeeForm(false);
       setEditingEmployee(null);
@@ -474,6 +527,7 @@ function App() {
       setSuccessMessage(
         `${employeeName} was deleted successfully.`
       );
+      await loadEmployeeStatistics();
 
       if (
         editingEmployee?.id === employee.id
@@ -538,6 +592,13 @@ function App() {
             </button>
           </div>
         </section>
+
+         <EmployeeDashboard
+             statistics={employeeStatistics}
+             loading={statisticsLoading}
+             error={statisticsError}
+             onRefresh={loadEmployeeStatistics}
+         />
 
         {successMessage && (
           <div className="alert alert-success">

@@ -2,6 +2,7 @@ package com.ems.employee.service;
 
 import com.ems.employee.dto.EmployeeRequestDto;
 import com.ems.employee.dto.EmployeeResponseDto;
+import com.ems.employee.dto.EmployeeStatisticsDto;
 import com.ems.employee.dto.PageResponse;
 
 public interface EmployeeService {
@@ -17,9 +18,7 @@ public interface EmployeeService {
             String direction
     );
 
-    EmployeeResponseDto getEmployeeById(
-            Long id
-    );
+    EmployeeResponseDto getEmployeeById(Long id);
 
     EmployeeResponseDto updateEmployee(
             Long id,
@@ -59,4 +58,6 @@ public interface EmployeeService {
             String sortBy,
             String direction
     );
+
+    EmployeeStatisticsDto getEmployeeStatistics();
 }
