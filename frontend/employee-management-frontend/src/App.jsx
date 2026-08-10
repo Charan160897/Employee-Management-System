@@ -18,6 +18,7 @@ import EmployeeDashboard from "./components/EmployeeDashboard";
 import EmployeeFilters from "./components/EmployeeFilters";
 import EmployeeForm from "./components/EmployeeForm";
 import EmployeeList from "./components/EmployeeList";
+import EmployeeProfile from "./components/EmployeeProfile";
 import Header from "./components/Header";
 import Pagination from "./components/Pagination";
 
@@ -97,6 +98,11 @@ const [
 
   const [editingEmployee, setEditingEmployee] =
     useState(null);
+  
+  const [
+  selectedEmployee,
+  setSelectedEmployee,
+] = useState(null);
 
  const loadEmployees = useCallback(
   async () => {
@@ -241,16 +247,33 @@ const loadEmployeeStatistics =
     setShowEmployeeForm(true);
   };
 
-  const handleEditEmployee = (employee) => {
-    clearMessages();
-    setEditingEmployee(employee);
-    setShowEmployeeForm(true);
+ const handleViewEmployee = (employee) => {
+  clearMessages();
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+  setEditingEmployee(null);
+  setShowEmployeeForm(false);
+
+  setSelectedEmployee(employee);
+};
+
+  const closeProfile = () => {
+  setSelectedEmployee(null);
   };
+
+
+ const handleEditEmployee = (employee) => {
+  clearMessages();
+
+  setSelectedEmployee(null);
+
+  setEditingEmployee(employee);
+  setShowEmployeeForm(true);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
 
   const handleApplyFilters = ({
     keyword,
@@ -524,6 +547,12 @@ const loadEmployeeStatistics =
 
       await deleteEmployee(employee.id);
 
+      if (
+      selectedEmployee?.id === employee.id
+     ) {
+      setSelectedEmployee(null);
+     }
+
       setSuccessMessage(
         `${employeeName} was deleted successfully.`
       );
@@ -599,6 +628,18 @@ const loadEmployeeStatistics =
              error={statisticsError}
              onRefresh={loadEmployeeStatistics}
          />
+
+         {selectedEmployee && (
+
+          <EmployeeProfile
+
+          employee={selectedEmployee}
+          onEdit={handleEditEmployee}
+          onClose={closeProfile}
+
+          />
+
+          )}
 
         {successMessage && (
           <div className="alert alert-success">
@@ -737,9 +778,8 @@ const loadEmployeeStatistics =
           <>
             <EmployeeList
               employees={employees}
-              onEdit={
-                handleEditEmployee
-              }
+              onEdit={ handleEditEmployee}
+              onView={handleViewEmployee}
               onDelete={handleDelete}
             />
 

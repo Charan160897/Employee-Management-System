@@ -1,5 +1,6 @@
 function EmployeeList({
   employees,
+  onView,
   onEdit,
   onDelete,
 }) {
@@ -81,6 +82,17 @@ function EmployeeList({
 
                 <td>
                   <div className="action-buttons">
+
+                    <button
+                    className="view-button"
+
+                    onClick={()=>
+                    onView(employee)
+                    }
+
+                    >
+                      View
+                    </button>
                     <button
                       type="button"
                       className="edit-button"
