@@ -4,6 +4,7 @@ function EmployeeProfile({
   employee,
   onClose,
   onEdit,
+  isAdmin,
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -272,13 +273,15 @@ function EmployeeProfile({
             Close
           </button>
 
-          <button
-            type="button"
-            className="profile-edit-button"
-            onClick={handleEdit}
-          >
-            Edit Employee
-          </button>
+         {isAdmin && (
+             <button
+                type="button"
+                 className="profile-edit-button"
+                onClick={handleEdit}
+             >
+                 Edit Employee
+            </button>
+)}
         </div>
       </section>
     </div>

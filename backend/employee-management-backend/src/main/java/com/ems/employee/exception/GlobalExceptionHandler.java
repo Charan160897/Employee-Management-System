@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -112,5 +113,36 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(response);
+    }
+
+
+    @ExceptionHandler(
+            AuthenticationException.class
+    )
+    public ResponseEntity<Map<String, Object>>
+    handleAuthenticationException(
+            AuthenticationException exception
+    ) {
+        Map<String, Object> body =
+                new HashMap<>();
+
+        body.put(
+                "status",
+                HttpStatus.UNAUTHORIZED.value()
+        );
+
+        body.put(
+                "error",
+                "Unauthorized"
+        );
+
+        body.put(
+                "message",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(body);
     }
 }

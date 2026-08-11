@@ -20,6 +20,8 @@ import EmployeeForm from "./components/EmployeeForm";
 import EmployeeList from "./components/EmployeeList";
 import EmployeeProfile from "./components/EmployeeProfile";
 import Header from "./components/Header";
+import Login from "./components/Login";
+import { loginUser } from "./api/authService";
 import Pagination from "./components/Pagination";
 
 function App() {
@@ -195,6 +197,30 @@ const [
     statusFilter,
   ]
 );
+
+const [
+  currentUser,
+  setCurrentUser,
+] = useState(() => {
+  const storedUser =
+    localStorage.getItem(
+      "emsCurrentUser"
+    );
+
+  return storedUser
+    ? JSON.parse(storedUser)
+    : null;
+});
+
+const [
+  loginLoading,
+  setLoginLoading,
+] = useState(false);
+
+const [
+  loginError,
+  setLoginError,
+] = useState("");
 
 const loadEmployeeStatistics =
   useCallback(async () => {
@@ -590,6 +616,60 @@ const loadEmployeeStatistics =
     }
   };
 
+  const handleLogin = async (
+  credentials
+) => {
+  try {
+    setLoginLoading(true);
+    setLoginError("");
+
+    const user =
+      await loginUser(
+        credentials
+      );
+
+    setCurrentUser(user);
+
+    localStorage.setItem(
+      "emsCurrentUser",
+      JSON.stringify(user)
+    );
+  } catch (requestError) {
+    setLoginError(
+      requestError.response?.data
+        ?.message ||
+        "Unable to sign in."
+    );
+  } finally {
+    setLoginLoading(false);
+  }
+};
+
+  const handleLogout = () => {
+  setCurrentUser(null);
+
+  localStorage.removeItem(
+    "emsCurrentUser"
+  );
+
+  setSelectedEmployee(null);
+  setEditingEmployee(null);
+  setShowEmployeeForm(false);
+};
+
+const isAdmin =
+  currentUser?.role === "ADMIN";
+
+if (!currentUser) {
+  return (
+    <Login
+      onLogin={handleLogin}
+      loading={loginLoading}
+      error={loginError}
+    />
+  );
+}
+
   return (
     <div className="app">
       <Header />
@@ -606,19 +686,45 @@ const loadEmployeeStatistics =
           </div>
 
           <div className="summary-actions">
+
+            <div className="logged-in-user">
+              <div>
+                <span>
+                  Signed in as
+                </span>
+
+                <strong>
+                  {currentUser.username}
+                </strong>
+
+                <small>
+                  {currentUser.role}
+                </small>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="logout-button"
+              >
+                 Logout
+                </button>
+            </div>
             <div className="employee-count">
               <span>Total employees</span>
               <strong>{totalElements}</strong>
             </div>
 
-            <button
-              type="button"
-              className="add-employee-button"
-              onClick={handleOpenCreateForm}
-              disabled={submitting}
-            >
-              + Add Employee
-            </button>
+           {isAdmin && (
+             <button
+                type="button"
+                className="add-employee-button"
+                onClick={handleOpenCreateForm}
+                disabled={submitting}
+             >
+                + Add Employee
+             </button>
+      )}
           </div>
         </section>
 
@@ -781,6 +887,7 @@ const loadEmployeeStatistics =
               onEdit={ handleEditEmployee}
               onView={handleViewEmployee}
               onDelete={handleDelete}
+              isAdmin={isAdmin}
             />
 
             <Pagination

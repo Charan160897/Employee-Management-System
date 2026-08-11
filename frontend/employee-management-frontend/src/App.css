@@ -1634,3 +1634,201 @@
     flex-direction: column;
   }
 }
+
+/* ================================
+   DAY 12 LOGIN
+   ================================ */
+
+.login-page {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #0f172a,
+      #1e3a8a
+    );
+}
+
+.login-card {
+  width: min(420px, 100%);
+
+  padding: 36px;
+
+  border-radius: 18px;
+
+  background: white;
+
+  box-shadow:
+    0 30px 80px
+    rgba(0, 0, 0, 0.3);
+}
+
+.login-header {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.login-header h1 {
+  margin: 0 0 9px;
+
+  color: #0f172a;
+
+  font-size: 26px;
+}
+
+.login-header p {
+  margin: 0;
+
+  color: #64748b;
+}
+
+.login-form {
+  display: grid;
+  gap: 18px;
+}
+
+.login-field {
+  display: grid;
+  gap: 7px;
+}
+
+.login-field label {
+  color: #334155;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.login-field input {
+  width: 100%;
+
+  padding: 12px 14px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  outline: none;
+}
+
+.login-field input:focus {
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 99, 235, 0.12);
+}
+
+.login-button {
+  margin-top: 4px;
+
+  padding: 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #2563eb;
+  color: white;
+
+  cursor: pointer;
+
+  font-weight: 800;
+}
+
+.login-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.login-error {
+  margin-bottom: 18px;
+
+  padding: 11px 13px;
+
+  border-radius: 8px;
+
+  background: #fee2e2;
+  color: #991b1b;
+
+  font-size: 13px;
+}
+
+/* ================================
+   DAY 12 - LOGGED IN USER
+   ================================ */
+
+.logged-in-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 8px 12px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+
+  background: #f8fafc;
+}
+
+.logged-in-user > div {
+  display: grid;
+  gap: 2px;
+
+  text-align: right;
+}
+
+.logged-in-user span {
+  color: #64748b;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+}
+
+.logged-in-user strong {
+  color: #0f172a;
+
+  font-size: 14px;
+}
+
+.logged-in-user small {
+  color: #2563eb;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.logout-button {
+  padding: 9px 13px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  background: white;
+  color: #334155;
+
+  cursor: pointer;
+
+  font-weight: 700;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.logout-button:hover {
+  border-color: #94a3b8;
+
+  background: #f1f5f9;
+}
+
+.logout-button:active {
+  background: #e2e8f0;
+}

@@ -3,6 +3,7 @@ function EmployeeList({
   onView,
   onEdit,
   onDelete,
+  isAdmin,
 }) {
   if (!employees || employees.length === 0) {
     return (
@@ -84,34 +85,38 @@ function EmployeeList({
                   <div className="action-buttons">
 
                     <button
-                    className="view-button"
-
-                    onClick={()=>
-                    onView(employee)
-                    }
-
+                        type="button"
+                        className="view-button"
+                        onClick={() =>
+                                onView(employee)
+                        }
                     >
-                      View
+                         View
                     </button>
+
+                    {isAdmin && (
+                        <>
                     <button
-                      type="button"
-                      className="edit-button"
-                      onClick={() =>
-                        onEdit(employee)
-                      }
+                        type="button"
+                        className="edit-button"
+                        onClick={() =>
+                         onEdit(employee)
+                        }
                     >
                       Edit
                     </button>
 
                     <button
-                      type="button"
-                      className="delete-button"
-                      onClick={() =>
-                        onDelete(employee)
-                      }
+                        type="button"
+                        className="delete-button"
+                        onClick={() =>
+                         onDelete(employee)
+                        }
                     >
                       Delete
                     </button>
+             </>
+            )}
                   </div>
                 </td>
               </tr>
