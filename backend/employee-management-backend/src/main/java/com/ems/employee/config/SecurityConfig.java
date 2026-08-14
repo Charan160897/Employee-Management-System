@@ -68,6 +68,14 @@ public class SecurityConfig {
                                         )
                                         .permitAll()
 
+
+                                        .requestMatchers(
+                                                HttpMethod.GET,
+                                                "/api/audit/**"
+                                        )
+                                        .hasRole("ADMIN")
+
+
                                         .requestMatchers(
                                                 HttpMethod.GET,
                                                 "/api/employees/**"

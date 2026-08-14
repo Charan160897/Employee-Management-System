@@ -8,11 +8,14 @@ import com.ems.employee.exception.DuplicateEmailException;
 import com.ems.employee.exception.EmployeeNotFoundException;
 import com.ems.employee.mapper.EmployeeMapper;
 import com.ems.employee.repository.EmployeeRepository;
+import com.ems.employee.service.AuditLogService;
 import com.ems.employee.service.EmployeeService;
 import com.ems.employee.specification.EmployeeSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import com.ems.employee.dto.DepartmentCountDto;
@@ -33,13 +36,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
+    private final AuditLogService  auditLogService;
 
     public EmployeeServiceImpl(
             EmployeeRepository employeeRepository,
-            EmployeeMapper employeeMapper
+            EmployeeMapper employeeMapper,
+            AuditLogService auditLogService
     ) {
         this.employeeRepository = employeeRepository;
         this.employeeMapper = employeeMapper;
+        this.auditLogService = auditLogService;
+
     }
 
     /*
@@ -67,6 +74,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Employee savedEmployee =
                 employeeRepository.save(employee);
+
+        auditLogService.log(
+                getCurrentUsername(),
+                "CREATE",
+                savedEmployee.getFirstName()
+                        + " "
+                        + savedEmployee.getLastName()
+        );
 
         return employeeMapper.toResponseDto(
                 savedEmployee
@@ -148,6 +163,14 @@ public class EmployeeServiceImpl implements EmployeeService {
                         existingEmployee
                 );
 
+        auditLogService.log(
+                getCurrentUsername(),
+                "UPDATE",
+                updatedEmployee.getFirstName()
+                        + " "
+                        + updatedEmployee.getLastName()
+        );
+
         return employeeMapper.toResponseDto(
                 updatedEmployee
         );
@@ -157,12 +180,28 @@ public class EmployeeServiceImpl implements EmployeeService {
      * Delete an employee.
      */
     @Override
-    public void deleteEmployee(Long id) {
-        Employee employee = findEmployee(id);
+    public void deleteEmployee(
+            Long id
+    ) {
 
-        employeeRepository.delete(employee);
+        Employee employee =
+                findEmployee(id);
+
+        String employeeName =
+                employee.getFirstName()
+                        + " "
+                        + employee.getLastName();
+
+        employeeRepository.delete(
+                employee
+        );
+
+        auditLogService.log(
+                getCurrentUsername(),
+                "DELETE",
+                employeeName
+        );
     }
-
     /*
      * Search employees using first name, last name or email.
      */
@@ -259,16 +298,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         return createPageResponse(employeePage);
     }
 
-    /*
-     * Day 8 combined filtering.
-     *
-     * This method can combine:
-     * - keyword
-     * - department
-     * - active status
-     * - pagination
-     * - sorting
-     */
+
     @Override
     public PageResponse<EmployeeResponseDto> filterEmployees(
             String keyword,
@@ -505,4 +535,22 @@ public class EmployeeServiceImpl implements EmployeeService {
                 : email.trim()
                 .toLowerCase();
     }
+    private String getCurrentUsername() {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        if (
+                authentication == null
+                        ||
+                        !authentication.isAuthenticated()
+        ) {
+            return "SYSTEM";
+        }
+
+        return authentication.getName();
+    }
 }
+

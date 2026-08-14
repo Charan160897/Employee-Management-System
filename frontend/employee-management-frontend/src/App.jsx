@@ -22,9 +22,79 @@ import EmployeeProfile from "./components/EmployeeProfile";
 import Header from "./components/Header";
 import Login from "./components/Login";
 import { loginUser } from "./api/authService";
+import AuditLogTable from "./components/AuditLogTable";
+import {getAuditLogs,} from "./api/auditService";
 import Pagination from "./components/Pagination";
 
 function App() {
+
+const [
+  auditLogs,
+  setAuditLogs,
+] = useState([]);
+
+const [
+  auditLoading,
+  setAuditLoading,
+] = useState(false);
+
+const [
+  auditError,
+  setAuditError,
+] = useState("");
+
+const loadAuditLogs =
+  useCallback(async () => {
+
+    try {
+      setAuditLoading(true);
+      setAuditError("");
+
+      const data =
+        await getAuditLogs();
+
+      setAuditLogs(
+        Array.isArray(data)
+          ? data
+          : []
+      );
+
+    } catch (requestError) {
+
+      console.error(
+        "Failed to load audit logs:",
+        requestError
+      );
+
+      setAuditError(
+        requestError.response?.data
+          ?.message ||
+        "Unable to load audit logs."
+      );
+
+    } finally {
+      setAuditLoading(false);
+    }
+  }, []);
+
+  const [
+  activeView,
+  setActiveView,
+] = useState("employees");
+
+const handleShowEmployees = () => {
+  setActiveView(
+    "employees"
+  );
+};
+
+const handleShowAuditLogs = () => {
+  setActiveView(
+    "audit"
+  );
+
+  loadAuditLogs();
+};
 
 const [
   employeeStatistics,
@@ -675,6 +745,40 @@ if (!currentUser) {
       <Header />
 
       <main className="main-content">
+
+        <nav className="app-navigation">
+
+  <button
+    type="button"
+    className={
+      activeView === "employees"
+        ? "nav-button nav-button-active"
+        : "nav-button"
+    }
+    onClick={
+      handleShowEmployees
+    }
+  >
+    Employees
+  </button>
+
+  {isAdmin && (
+    <button
+      type="button"
+      className={
+        activeView === "audit"
+          ? "nav-button nav-button-active"
+          : "nav-button"
+      }
+      onClick={
+        handleShowAuditLogs
+      }
+    >
+      Audit Logs
+    </button>
+  )}
+
+</nav>
         <section className="summary-section">
           <div>
             <h2>Employees</h2>
