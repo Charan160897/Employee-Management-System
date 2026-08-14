@@ -74,6 +74,7 @@ describe("EmployeeProfile", () => {
       employee={employee}
       onClose={() => {}}
       onEdit={onEdit}
+      isAdmin={true}
     />
   );
 

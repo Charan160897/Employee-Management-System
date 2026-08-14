@@ -82,6 +82,7 @@ describe("EmployeeList", () => {
       onView={() => {}}
       onEdit={onEdit}
       onDelete={() => {}}
+      isAdmin={true}
     />
   );
 
@@ -107,6 +108,7 @@ describe("EmployeeList", () => {
       onView={() => {}}
       onEdit={() => {}}
       onDelete={onDelete}
+      isAdmin={true}
     />
   );
 

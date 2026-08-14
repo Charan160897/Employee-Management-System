@@ -265,15 +265,8 @@ function EmployeeProfile({
         </div>
 
         <div className="profile-actions">
-          <button
-            type="button"
-            className="profile-secondary-button"
-            onClick={onClose}
-          >
-            Close
-          </button>
 
-         {isAdmin && (
+          {isAdmin && (
              <button
                 type="button"
                  className="profile-edit-button"
@@ -282,6 +275,17 @@ function EmployeeProfile({
                  Edit Employee
             </button>
 )}
+
+
+          <button
+            type="button"
+            className="profile-secondary-button"
+            onClick={onClose}
+          >
+            Close
+          </button>
+
+     
         </div>
       </section>
     </div>

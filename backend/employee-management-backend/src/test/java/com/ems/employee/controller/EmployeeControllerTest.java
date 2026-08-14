@@ -2,9 +2,13 @@ package com.ems.employee.controller;
 
 import com.ems.employee.dto.EmployeeResponseDto;
 import com.ems.employee.exception.EmployeeNotFoundException;
+import com.ems.employee.security.JwtService;
 import com.ems.employee.service.EmployeeService;
+
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,16 +21,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 @WebMvcTest(EmployeeController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class EmployeeControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-
-
     @MockitoBean
     private EmployeeService employeeService;
+
+    @MockitoBean
+    private JwtService jwtService;
 
 
     @Test

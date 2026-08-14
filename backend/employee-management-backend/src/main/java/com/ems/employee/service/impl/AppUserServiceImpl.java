@@ -7,6 +7,7 @@ import com.ems.employee.repository.AppUserRepository;
 import com.ems.employee.service.AppUserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.ems.employee.exception.AuthenticationException;
+import com.ems.employee.security.JwtService;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,22 +19,28 @@ public class AppUserServiceImpl
 
     private final PasswordEncoder
             passwordEncoder;
+    private final JwtService jwtService;
 
     public AppUserServiceImpl(
             AppUserRepository appUserRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
     ) {
         this.appUserRepository =
                 appUserRepository;
 
         this.passwordEncoder =
                 passwordEncoder;
+
+        this.jwtService =
+                jwtService;
     }
 
     @Override
     public LoginResponseDto login(
             LoginRequestDto loginRequest
     ) {
+
         String username =
                 loginRequest
                         .getUsername()
@@ -41,7 +48,9 @@ public class AppUserServiceImpl
 
         AppUser user =
                 appUserRepository
-                        .findByUsername(username)
+                        .findByUsername(
+                                username
+                        )
                         .orElseThrow(
                                 () ->
                                         new AuthenticationException(
@@ -62,16 +71,23 @@ public class AppUserServiceImpl
                 );
 
         if (!passwordMatches) {
-            throw new RuntimeException(
+            throw new AuthenticationException(
                     "Invalid username or password"
             );
         }
+
+        String token =
+                jwtService.generateToken(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getRole()
+                );
 
         return new LoginResponseDto(
                 user.getId(),
                 user.getUsername(),
                 user.getRole(),
+                token,
                 "Login successful"
         );
-    }
-}
+    }}

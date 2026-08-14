@@ -12,6 +12,52 @@ const employeeApi = axios.create({
   timeout: 10000,
 });
 
+employeeApi.interceptors.request.use(
+  (config) => {
+
+    const storedUser =
+      localStorage.getItem(
+        "emsCurrentUser"
+      );
+
+    if (storedUser) {
+
+      const user =
+        JSON.parse(storedUser);
+
+      if (user.token) {
+
+        config.headers.Authorization =
+          `Bearer ${user.token}`;
+      }
+    }
+
+    return config;
+  },
+
+  (error) =>
+    Promise.reject(error)
+);
+
+employeeApi.interceptors.response.use(
+  (response) => response,
+
+  (error) => {
+
+    if (
+      error.response?.status === 401
+    ) {
+      localStorage.removeItem(
+        "emsCurrentUser"
+      );
+
+      window.location.reload();
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export const getEmployees = async ({
   page = 0,
   size = 5,
